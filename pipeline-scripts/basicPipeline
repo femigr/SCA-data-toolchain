@@ -1,8 +1,11 @@
 pipeline {
     agent any 
     parameters {
-        string(name: 'REPO_URL', defaultValue: 'https://github.com/torvalds/linux.git', description: 'Https clone link');
-        string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash)')
+        string(name: 'REPO_URL', defaultValue: 'https://github.com/torvalds/linux.git', description: 'Https clone link'),
+        string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch')
+    }
+    options {
+        timeout(time: 15, unit: 'MINUTES')
     }
     stages {
         stage('Get Repository') { 
@@ -12,6 +15,7 @@ pipeline {
                     if(env.REVISION != ''){
                         sh 'git checkout ' + env.REVISION
                     }
+                    sh 'git status'
                 }
             }
         }
