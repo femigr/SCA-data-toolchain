@@ -1,0 +1,51 @@
+pipeline {
+    agent any 
+    parameters {
+        string(name: 'REPO_URL', defaultValue: 'https://github.com/openssl/openssl.git', description: 'Https clone link');
+        string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch')
+    }
+    options {
+        timeout(time: 15, unit: 'MINUTES', activity: true)
+    }
+    stages {
+        stage('Get Repository') { 
+            steps {
+                git url: env.REPO_URL, changelog: false
+                script{
+                    if(env.REVISION != ''){
+                        sh 'git checkout ' + env.REVISION
+                    }
+                    sh 'git status'
+                }
+            }
+        }
+        stage('CodeQL'){
+            stages{
+                stage('Setup CodeQL'){
+                    sh 'wget -O codeQL.zip https://github.com/github/codeql-cli-binaries/releases/download/v2.5.7/codeql-linux64.zip'
+                    unzip zipFile: 'codeQL.zip'
+                    sh 'ls -a'
+                    echo env.PATH
+                    sh 'PATH=$PATH:~/codeQL'
+                    echo env.PATH
+                    sh 'codeql resolve qlpacks '
+                }
+                stage('Build CodeQL Database'){
+                    steps{
+                        echo 'Todo'
+                    }
+                }
+                stage('Run CodeQL Queries'){
+                    steps{
+                        echo 'Todo'
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
