@@ -28,7 +28,7 @@ pipeline {
                         sh 'ls -a'
                         echo env.PATH
                         script{
-                            env.PATH += ':~/codeql'
+                            env.PATH += ':' + env.WORKSPACE + '/codeql'
                         }
                         echo env.PATH
                         sh 'codeql resolve qlpacks '
