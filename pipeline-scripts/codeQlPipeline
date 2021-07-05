@@ -23,8 +23,13 @@ pipeline {
             stages{
                 stage('Setup CodeQL'){
                     steps{
-                        sh 'wget -O codeQL.zip https://github.com/github/codeql-cli-binaries/releases/download/v2.5.7/codeql-linux64.zip'
-                        unzip zipFile: 'codeQL.zip'
+                        //sh 'wget -O codeQL.zip https://github.com/github/codeql-cli-binaries/releases/download/v2.5.7/codeql-linux64.zip'
+                        //unzip zipFile: 'codeQL.zip'
+                        sh '''
+                            wget https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz
+                            tar -xvzf ../codeql-bundle-linux64.tar.gz
+                        '''
+
                         sh 'ls -a'
                         dir('codeql'){
                             sh "chmod +x codeql"
