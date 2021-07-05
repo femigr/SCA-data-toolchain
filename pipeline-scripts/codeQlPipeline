@@ -22,13 +22,15 @@ pipeline {
         stage('CodeQL'){
             stages{
                 stage('Setup CodeQL'){
-                    sh 'wget -O codeQL.zip https://github.com/github/codeql-cli-binaries/releases/download/v2.5.7/codeql-linux64.zip'
-                    unzip zipFile: 'codeQL.zip'
-                    sh 'ls -a'
-                    echo env.PATH
-                    sh 'PATH=$PATH:~/codeQL'
-                    echo env.PATH
-                    sh 'codeql resolve qlpacks '
+                    steps{
+                        sh 'wget -O codeQL.zip https://github.com/github/codeql-cli-binaries/releases/download/v2.5.7/codeql-linux64.zip'
+                        unzip zipFile: 'codeQL.zip'
+                        sh 'ls -a'
+                        echo env.PATH
+                        sh 'PATH=$PATH:~/codeQL'
+                        echo env.PATH
+                        sh 'codeql resolve qlpacks '
+                    }
                 }
                 stage('Build CodeQL Database'){
                     steps{
