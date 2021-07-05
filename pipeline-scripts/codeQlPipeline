@@ -27,7 +27,9 @@ pipeline {
                         unzip zipFile: 'codeQL.zip'
                         sh 'ls -a'
                         echo env.PATH
-                        sh 'PATH=$PATH:~/codeQL'
+                        script{
+                            env.PATH += ':~/codeql'
+                        }
                         echo env.PATH
                         sh 'codeql resolve qlpacks '
                     }
