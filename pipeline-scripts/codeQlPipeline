@@ -29,6 +29,9 @@ pipeline {
                         dir('codeql'){
                             sh "chmod +x codeql"
                         }
+                        dir('codeql/tools/linux64/java/bin'){
+                            sh "chmod +x java"
+                        }
                         echo env.PATH
                         script{
                             env.PATH += ':' + env.WORKSPACE + '/codeql'
