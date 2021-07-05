@@ -26,6 +26,9 @@ pipeline {
                         sh 'wget -O codeQL.zip https://github.com/github/codeql-cli-binaries/releases/download/v2.5.7/codeql-linux64.zip'
                         unzip zipFile: 'codeQL.zip'
                         sh 'ls -a'
+                        dir('codeql'){
+                            sh "chmod +x codeql"
+                        }
                         echo env.PATH
                         script{
                             env.PATH += ':' + env.WORKSPACE + '/codeql'
