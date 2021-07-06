@@ -18,6 +18,11 @@ pipeline {
                     if(env.REVISION != ''){
                         sh 'git checkout ' + env.REVISION
                     }
+                    try{
+                        sh 'git submodule update --init --recursive'
+                    }catch(Exception err){
+                        echo err
+                    }
                     sh 'git status'
                 }
             }
