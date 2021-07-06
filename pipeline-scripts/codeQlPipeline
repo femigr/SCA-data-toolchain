@@ -2,7 +2,7 @@ pipeline {
     agent any 
     parameters {
         string(name: 'REPO_URL', defaultValue: 'https://github.com/openssl/openssl.git', description: 'Https clone link');
-        string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch'),
+        string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch');
         string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language')
     }
     options {
