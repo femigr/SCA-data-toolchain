@@ -18,10 +18,8 @@ pipeline {
                     if(env.REVISION != ''){
                         sh 'git checkout ' + env.REVISION
                     }
-                    try{
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         sh 'git submodule update --init --recursive'
-                    }catch(Exception err){
-                        echo err
                     }
                     sh 'git status'
                 }
@@ -61,10 +59,8 @@ pipeline {
                                 command += ' --command="' + env.BUILD_COMMAND + '"'
                             }
                             if(env.SOURCE_ROOT != ''){
-                                try{
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                     sh 'mkdir ' + env.SOURCE_ROOT
-                                }catch(Exception err){
-                                    echo err
                                 }
                                 command += ' --source-root=' + env.SOURCE_ROOT + ''
                             }
