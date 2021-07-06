@@ -75,15 +75,13 @@ pipeline {
                 stage('Run CodeQL Queries'){
                     steps{
                         sh 'codeql database analyze --format=sarif-latest --output=codeQlScan.sarif codeQlDb cpp-lgtm-full.qls'
+                        archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
                     }
                 }
             }
         }
     }
     post {
-        success {
-            archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
-        }
         always {
             deleteDir()
         }
