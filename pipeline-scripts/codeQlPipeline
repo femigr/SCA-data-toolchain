@@ -56,6 +56,11 @@ pipeline {
                                 command += ' --command="' + env.BUILD_COMMAND + '"'
                             }
                             if(env.SOURCE_ROOT != ''){
+                                try{
+                                    sh 'mkdir ' + env.SOURCE_ROOT
+                                }catch(Exception err){
+                                    echo err
+                                }
                                 command += ' --source-root=' + env.SOURCE_ROOT + ''
                             }
                             sh command
