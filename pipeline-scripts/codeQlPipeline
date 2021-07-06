@@ -2,7 +2,8 @@ pipeline {
     agent any 
     parameters {
         string(name: 'REPO_URL', defaultValue: 'https://github.com/openssl/openssl.git', description: 'Https clone link');
-        string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch')
+        string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch'),
+        string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language')
     }
     options {
         timeout(time: 15, unit: 'MINUTES', activity: true)
@@ -29,7 +30,6 @@ pipeline {
                             wget -q https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz
                             tar -xvzf codeql-bundle-linux64.tar.gz
                         '''
-
                         sh 'ls -a'
                         dir('codeql'){
                             sh "chmod +x codeql"
@@ -42,17 +42,18 @@ pipeline {
                             env.PATH += ':' + env.WORKSPACE + '/codeql'
                         }
                         echo env.PATH
-                        sh 'codeql resolve qlpacks '
+                        sh 'codeql resolve qlpacks'
+                        sh 'codeql resolve languages'
                     }
                 }
                 stage('Build CodeQL Database'){
                     steps{
-                        echo 'Todo'
+                        sh 'codeql database create --language=' + env.LANGUAGE + ' codeQlDb'
                     }
                 }
                 stage('Run CodeQL Queries'){
                     steps{
-                        echo 'Todo'
+                        sh 'codeql database analyze --format=sarif-latest --output=codeQlScan.sarif codeQlDb cpp-lgtm-full.qls'
                     }
                 }
             }
