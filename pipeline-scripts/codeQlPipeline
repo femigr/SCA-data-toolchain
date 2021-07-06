@@ -52,7 +52,7 @@ pipeline {
                         script{
                             command = 'codeql database create --language=' + env.LANGUAGE + ' codeQlDb'
                             if(env.BUILD_COMMAND != ''){
-                                command += ' --command=' + env.BUILD_COMMAND
+                                command += ' --command="' + env.BUILD_COMMAND + '"'
                             }
                             sh command
                         }
@@ -69,6 +69,9 @@ pipeline {
     post {
         always {
             deleteDir()
+        }
+        success {
+            archiveArtifacts artifacts: 'codeQlScan.sarif'
         }
     }
 }
