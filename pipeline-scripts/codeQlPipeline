@@ -85,7 +85,7 @@ pipeline {
             deleteDir()
         }
         success {
-            archiveArtifacts artifacts: 'codeQlScan.sarif'
+            archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
         }
     }
 }
