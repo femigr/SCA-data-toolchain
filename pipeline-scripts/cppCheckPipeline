@@ -18,8 +18,8 @@ pipeline {
         }
         stage('cppCheck'){
             steps{
-                sh 'cppcheck --xml ./ > $DEBIAN_PACKAGE_NAME.xml'
-                archiveArtifacts artifacts: '$DEBIAN_PACKAGE_NAME.xml', defaultExcludes: false
+                sh 'cppcheck --xml ./ > ${DEBIAN_PACKAGE_NAME}.xml'
+                archiveArtifacts artifacts: '${DEBIAN_PACKAGE_NAME}.xml', defaultExcludes: false
             }
         }
     }
