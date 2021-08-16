@@ -1,7 +1,7 @@
 pipeline {
     agent any 
     parameters {
-        string(name: 'DEBIAN_PACKAGE_NAME', defaultValue: 'https://github.com/openssl/openssl.git', description: 'Name of the debian package to scan');
+        string(name: 'DEBIAN_PACKAGE_NAME', defaultValue: '', description: 'Name of the debian package to scan');
         //string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch');
         //string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
         //string(name: 'BUILD_COMMAND', defaultValue: '', description: 'Command that builds the repo, leave empty to attempt auto-detection');
