@@ -1,0 +1,31 @@
+pipeline {
+    agent any 
+    parameters {
+        string(name: 'DEBIAN_PACKAGE_NAME', defaultValue: 'https://github.com/openssl/openssl.git', description: 'Name of the debian package to scan');
+        //string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch');
+        //string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
+        //string(name: 'BUILD_COMMAND', defaultValue: '', description: 'Command that builds the repo, leave empty to attempt auto-detection');
+        //string(name: 'SOURCE_ROOT', defaultValue: '', description: 'Leave empty to stay in the root folder')
+    }
+    options {
+        timeout(time: 15, unit: 'MINUTES', activity: true)
+    }
+    stages {
+        stage('Get Repository') { 
+            steps {
+                sh 'apt source $(DEBIAN_PACKAGE_NAME)'
+            }
+        }
+        stage('cppCheck'){
+            steps{
+                sh 'cppcheck --xml ./ > cppcheck.xml'
+                archiveArtifacts artifacts: 'cppcheck.xml', defaultExcludes: false
+            }
+        }
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
