@@ -1,7 +1,7 @@
 pipeline {
     agent any 
     parameters {
-        string(name: 'DEBIAN_PACKAGE_NAME', defaultValue: '', description: 'Name of the debian package to scan');
+        string(name: 'PROJECT', defaultValue: '', description: 'Name of the debian package to scan or git link of the repository');
         //string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch');
         //string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
         //string(name: 'BUILD_COMMAND', defaultValue: '', description: 'Command that builds the repo, leave empty to attempt auto-detection');
@@ -13,12 +13,22 @@ pipeline {
     stages {
         stage('Get Repository') { 
             steps {
-                sh 'apt source $DEBIAN_PACKAGE_NAME'
+                script{
+                    // check if PROJECT is a git link or a debian package name, roughly
+                    if(env.PROJECT.contains("//")) {
+                        sh 'git clone $PROJECT'
+                        env.FILENAME = env.PROJECT.split("//")[1].split("/")[2].split(".")[0] + '.xml'
+                    } else {
+                        sh 'apt source $PROJECT'
+                        env.FILENAME = env.PROJECT + '.xml'
+                    }
+                }
             }
         }
         stage('cppCheck'){
             steps{
-                sh 'cppcheck --xml ./ 2> ${DEBIAN_PACKAGE_NAME}.xml'
+                sh 'ls'
+                sh 'cppcheck --xml ./ 2> ${FILENAME}'
                 archiveArtifacts artifacts: '*.xml', defaultExcludes: false
             }
         }
