@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Get Repository') { 
             steps {
-                sh 'apt source $(DEBIAN_PACKAGE_NAME)'
+                sh 'apt source $DEBIAN_PACKAGE_NAME'
             }
         }
         stage('cppCheck'){
