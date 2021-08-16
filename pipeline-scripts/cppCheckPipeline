@@ -16,7 +16,7 @@ pipeline {
                 script{
                     // check if PROJECT is a git link or a debian package name, roughly
                     if(env.PROJECT.contains("//")) {
-                        sh 'git clone $PROJECT'
+                        sh 'git clone --progress $PROJECT'
                         env.FILENAME = env.PROJECT.split("//")[1].split("/")[2].split(".")[0] + '.xml'
                     } else {
                         sh 'apt source $PROJECT'
