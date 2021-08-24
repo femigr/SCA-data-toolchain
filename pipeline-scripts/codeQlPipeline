@@ -1,70 +1,32 @@
 pipeline {
     agent any 
     parameters {
-        string(name: 'REPO_URL', defaultValue: 'https://github.com/openssl/openssl.git', description: 'Https clone link');
-        string(name: 'REVISION', defaultValue: '', description: 'Specific revision to checkout (for example a commit hash), leave empty to just pull the current state of the main branch');
+        string(name: 'PACKAGE_NAME', defaultValue: 'openssl', description: 'Name of the package to be scanned');
         string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
-        string(name: 'BUILD_COMMAND', defaultValue: '', description: 'Command that builds the repo, leave empty to attempt auto-detection');
-        string(name: 'SOURCE_ROOT', defaultValue: '', description: 'Leave empty to stay in the root folder')
     }
     options {
         timeout(time: 15, unit: 'MINUTES', activity: true)
     }
     stages {
-        stage('Get Repository') { 
-            steps {
-                git url: env.REPO_URL, changelog: false
-                script{
-                    if(env.REVISION != ''){
-                        sh 'git checkout ' + env.REVISION
-                    }
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh 'git submodule update --init --recursive'
-                    }
-                    sh 'git status'
-                }
+        stage('CodeQL') {
+            agent {
+                docker { image 'scadatatoolchain:latest' }
             }
-        }
-        stage('CodeQL'){
             stages{
-                stage('Setup CodeQL'){
-                    steps{
-                        //sh 'wget -O codeQL.zip https://github.com/github/codeql-cli-binaries/releases/download/v2.5.7/codeql-linux64.zip'
-                        //unzip zipFile: 'codeQL.zip'
-                        sh '''
-                            wget -q https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz
-                            tar -xvzf codeql-bundle-linux64.tar.gz
-                        '''
-                        sh 'ls -a'
-                        dir('codeql'){
-                            sh "chmod +x codeql"
-                        }
-                        dir('codeql/tools/linux64/java/bin'){
-                            sh "chmod +x java"
-                        }
-                        echo env.PATH
-                        script{
-                            env.PATH += ':' + env.WORKSPACE + '/codeql'
-                        }
-                        echo env.PATH
-                        sh 'codeql resolve qlpacks'
-                        sh 'codeql resolve languages'
+                stage('Get Repository') { 
+                    steps {
+                        sh 'apt source $PACKAGE_NAME'
+                        sh 'ls'
                     }
                 }
                 stage('Build CodeQL Database'){
                     steps{
-                        script{
-                            command = 'codeql database create --language=' + env.LANGUAGE + ' codeQlDb'
-                            if(env.BUILD_COMMAND != ''){
-                                command += ' --command="' + env.BUILD_COMMAND + '"'
+                        dir("${PACKAGE_NAME}*/"){
+                            script{
+                                sh 'ls'
+                                command = 'codeql database create --language=' + env.LANGUAGE + ' codeQlDb --command="debuild -b -uc -us"'
+                                sh command
                             }
-                            if(env.SOURCE_ROOT != ''){
-                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    sh 'mkdir ' + env.SOURCE_ROOT
-                                }
-                                command += ' --source-root=' + env.SOURCE_ROOT + ''
-                            }
-                            sh command
                         }
                     }
                 }
