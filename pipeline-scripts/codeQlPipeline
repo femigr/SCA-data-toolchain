@@ -10,22 +10,33 @@ pipeline {
     stages {
         stage('CodeQL') {
             agent {
-                docker { image 'scadatatoolchain:latest' }
+                docker { 
+                    image 'scadatatoolchain:latest' 
+                    args '-u root:sudo'
+                }
             }
             stages{
                 stage('Get Repository') { 
                     steps {
-                        sh 'apt source $PACKAGE_NAME'
-                        sh 'ls'
+                        dir('sources'){
+                            sh 'apt source $PACKAGE_NAME'
+                            sh 'ls'
+                        }
+                    }
+                }
+                stage('Get Dependencies') {
+                    steps {
+                        sh 'apt build-dep ${PACKAGE_NAME} -y'
                     }
                 }
                 stage('Build CodeQL Database'){
                     steps{
-                        dir("${PACKAGE_NAME}*/"){
+                        dir('sources'){
                             script{
-                                sh 'ls'
-                                command = 'codeql database create --language=' + env.LANGUAGE + ' codeQlDb --command="debuild -b -uc -us"'
-                                sh command
+                                sh '''
+                                    cd *
+                                    codeql database create --language=${LANGUAGE} codeQlDb --command="debuild -b -uc -us" --overwrite
+                                '''
                             }
                         }
                     }
