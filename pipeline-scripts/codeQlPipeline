@@ -1,5 +1,10 @@
 pipeline {
-    agent any 
+    agent {
+        docker { 
+            image 'scadatatoolchain:latest' 
+            args '-u root:sudo'
+        }
+    }
     parameters {
         string(name: 'PACKAGE_NAME', defaultValue: 'openssl', description: 'Name of the package to be scanned');
         string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
@@ -9,15 +14,10 @@ pipeline {
     }
     stages {
         stage('CodeQL') {
-            agent {
-                docker { 
-                    image 'scadatatoolchain:latest' 
-                    args '-u root:sudo'
-                }
-            }
             stages{
                 stage('Get Repository') { 
                     steps {
+                        deleteDir()
                         dir('sources'){
                             sh 'apt source $PACKAGE_NAME'
                             sh 'ls'
