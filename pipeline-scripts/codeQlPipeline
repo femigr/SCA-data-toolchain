@@ -17,7 +17,6 @@ pipeline {
             stages{
                 stage('Get Repository') { 
                     steps {
-                        deleteDir()
                         dir('sources'){
                             sh 'apt source $PACKAGE_NAME'
                             sh 'ls'
