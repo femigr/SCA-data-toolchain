@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker { 
-            image 'scadatatoolchain:latest' 
-            args '-u root:sudo'
-        }
-    }
+    agent any
     parameters {
         string(name: 'PACKAGE_NAME', defaultValue: 'openssl', description: 'Name of the package to be scanned');
         string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
@@ -13,21 +8,14 @@ pipeline {
         timeout(time: 15, unit: 'MINUTES', activity: true)
     }
     stages {
+        stage('Prepare Dockerfile') {
+            steps {
+                echo "RUN apt-get source ${PACKAGE_NAME}\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile
+            }
+        }
         stage('CodeQL') {
+            agent { dockerfile true }
             stages{
-                stage('Get Repository') { 
-                    steps {
-                        dir('sources'){
-                            sh 'apt source $PACKAGE_NAME'
-                            sh 'ls'
-                        }
-                    }
-                }
-                stage('Get Dependencies') {
-                    steps {
-                        sh 'apt build-dep ${PACKAGE_NAME} -y'
-                    }
-                }
                 stage('Build CodeQL Database'){
                     steps{
                         dir('sources'){
