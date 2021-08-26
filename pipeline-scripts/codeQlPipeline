@@ -10,28 +10,40 @@ pipeline {
     stages {
         stage('Prepare Dockerfile') {
             steps {
-                echo "RUN apt-get source ${PACKAGE_NAME}\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile
+                sh 'echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile'
             }
         }
-        stage('CodeQL') {
-            agent { dockerfile true }
+        stage('Scan') {
+            agent { dockerfile {reuseNode true} }
             stages{
-                stage('Build CodeQL Database'){
-                    steps{
-                        dir('sources'){
-                            script{
-                                sh '''
-                                    cd *
-                                    codeql database create --language=${LANGUAGE} codeQlDb --command="debuild -b -uc -us" --overwrite
-                                '''
-                            }
+                stage('Get Source Package') {
+                    steps {
+                        dir('sources') {
+                            sh 'apt source $PACKAGE_NAME'
                         }
                     }
                 }
-                stage('Run CodeQL Queries'){
-                    steps{
-                        sh 'codeql database analyze --format=sarif-latest --output=codeQlScan.sarif codeQlDb cpp-lgtm-full.qls'
-                        archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
+                stage('CodeQl') {
+                    stages{
+                        stage('Build CodeQL Database'){
+                            steps{
+                                dir('sources'){
+                                    script{
+                                        sh '''
+                                            ls -a
+                                            cd *
+                                            codeql database create --language=${LANGUAGE} codeQlDb --command="debuild -b -uc -us" --overwrite
+                                        '''
+                                    }
+                                }
+                            }
+                        }
+                        stage('Run CodeQL Queries'){
+                            steps{
+                                sh 'codeql database analyze --format=sarif-latest --output=codeQlScan.sarif codeQlDb cpp-lgtm-full.qls'
+                                archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
+                            }
+                        }
                     }
                 }
             }
