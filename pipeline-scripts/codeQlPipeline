@@ -42,7 +42,7 @@ pipeline {
                             steps{
                                 dir('sources'){
                                     sh '''
-                                        cd *
+                                        cd `find ./ -name 'codeQlDb'`/..
                                         codeql database analyze --ram=1024 --format=sarif-latest --output=codeQlScan.sarif codeQlDb cpp-lgtm-full.qls
                                     '''
                                     archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
