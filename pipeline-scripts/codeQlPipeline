@@ -43,7 +43,7 @@ pipeline {
                                 dir('sources'){
                                     sh '''
                                         cd *
-                                        codeql database analyze --format=sarif-latest --output=codeQlScan.sarif codeQlDb cpp-lgtm-full.qls
+                                        codeql database analyze --ram=512 --format=sarif-latest --output=codeQlScan.sarif codeQlDb cpp-lgtm-full.qls
                                     '''
                                     archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
                                 }
