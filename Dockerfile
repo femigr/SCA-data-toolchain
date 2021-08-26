@@ -27,6 +27,8 @@ ENV PATH="${PATH}:/stuff/codeql"
 RUN codeql resolve qlpacks
 RUN codeql resolve languages
 
+RUN codeql query compile cpp-lgtm-full.qls
+
 WORKDIR /stuff/sources
 
 #RUN apt-get source openssl
