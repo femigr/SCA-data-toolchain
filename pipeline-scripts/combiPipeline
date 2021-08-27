@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'PACKAGE_NAME', defaultValue: 'openssl', description: 'Name of the package to be scanned');
+        string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
+    }
+    options {
+        timeout(time: 15, unit: 'MINUTES', activity: true)
+    }
+    stages {
+        stage('Prepare Dockerfile') {
+            steps {
+                sh 'echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile'
+            }
+        }
+        stage('Get Source Package') {
+            steps {
+                dir('sources') {
+                    sh 'apt source $PACKAGE_NAME'
+                }
+            }
+        }
+        stage('Scans') {
+            parallel{
+                stage('CodeQl') {
+                    agent { dockerfile {reuseNode true} }
+                    steps{
+                        dir('sources'){
+                            script{
+                                sh '''
+                                    ls -a
+                                    cd *
+                                    codeql database create --language=${LANGUAGE} codeQlDb --command="debuild -b -uc -us" --overwrite
+                                    codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls
+                                '''
+                                archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
+                            }
+                        }
+                    }
+                }
+                stage('cppcheck') {
+                    steps{
+                        sh 'cppcheck --xml ./ 2> ${PACKAGE_NAME}.xml'
+                        archiveArtifacts artifacts: '*.xml', defaultExcludes: false
+                    }
+                }
+            }                
+        }
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}

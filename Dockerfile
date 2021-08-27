@@ -9,7 +9,7 @@ RUN apt-get update && apt-get upgrade -y
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN apt-get install -y tzdata
 
-RUN apt-get install wget tar cppcheck build-essential fakeroot devscripts git sudo -y
+RUN apt-get install wget tar build-essential fakeroot devscripts -y
 
 WORKDIR /stuff
 
