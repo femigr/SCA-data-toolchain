@@ -29,6 +29,8 @@ RUN codeql resolve languages
 
 RUN codeql query compile cpp-lgtm-full.qls
 
+RUN codeql query compile --threads=0 /stuff/codeql/qlpacks/*/codeql-suites/*.qls
+
 WORKDIR /stuff/sources
 
 #RUN apt-get source openssl
