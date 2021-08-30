@@ -12,10 +12,10 @@ pipeline {
             steps {
                 sh '''
                 echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile
-                echo "\nls -a" >> Dockerfile
-                echo "\ncd *" >> Dockerfile
-                echo "\ncodeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite" >> Dockerfile
-                echo "\ncodeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile         
+                echo "\nRUN ls -a" >> Dockerfile
+                echo "\nRUN cd *" >> Dockerfile
+                echo "\nRUN codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite" >> Dockerfile
+                echo "\nRUN codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile         
                 '''
             }
         }
