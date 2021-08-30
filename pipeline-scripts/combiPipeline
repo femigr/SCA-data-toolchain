@@ -10,7 +10,13 @@ pipeline {
     stages {
         stage('Prepare Dockerfile') {
             steps {
-                sh 'echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile'
+                sh '''
+                echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile
+                echo "\nls -a" >> Dockerfile
+                echo "\ncd *" >> Dockerfile
+                echo "\ncodeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite" >> Dockerfile
+                echo "\ncodeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile         
+                '''
             }
         }
         stage('Get Source Package') {
@@ -27,12 +33,12 @@ pipeline {
                     steps{
                         dir('sources'){
                             script{
-                                sh '''
+                                /*sh '''
                                     ls -a
                                     cd *
                                     codeql database create --language=${LANGUAGE} codeQlDb --command="debuild -b -uc -us" --overwrite
                                     codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls
-                                '''
+                                '''*/
                                 archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
                             }
                         }
