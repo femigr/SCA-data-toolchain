@@ -20,7 +20,7 @@ pipeline {
         stage('Scans') {
             parallel{
                 stage('CodeQl') {
-                    agent { dockerfile }// agent { dockerfile {reuseNode true} }
+                    agent { dockerfile {reuseNode true} }
                     steps{
                         archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
                         /*dir('sources'){
