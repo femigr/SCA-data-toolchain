@@ -17,35 +17,31 @@ pipeline {
                 '''
             }
         }
-        stage('Get Source Package') {
-            steps {
-                dir('sources') {
-                    sh 'apt-get source $PACKAGE_NAME'
-                }
-            }
-        }
         stage('Scans') {
             parallel{
                 stage('CodeQl') {
-                    agent { dockerfile {reuseNode true} }
+                    agent { dockerfile }// agent { dockerfile {reuseNode true} }
                     steps{
-                        dir('sources'){
+                        archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
+                        /*dir('sources'){
                             script{
-                                /*sh '''
+                                sh '''
                                     ls -a
                                     cd *
                                     codeql database create --language=${LANGUAGE} codeQlDb --command="debuild -b -uc -us" --overwrite
                                     codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls
-                                '''*/
-                                archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false
+                                '''
                             }
-                        }
+                        }*/
                     }
                 }
                 stage('cppcheck') {
                     steps{
-                        sh 'cppcheck --xml ./ 2> ${PACKAGE_NAME}.xml'
-                        archiveArtifacts artifacts: '*.xml', defaultExcludes: false
+                        dir('sources') {
+                            sh 'apt-get source $PACKAGE_NAME'
+                            sh 'cppcheck --xml ./ 2> ${PACKAGE_NAME}.xml'
+                            archiveArtifacts artifacts: '*.xml', defaultExcludes: false
+                        }
                     }
                 }
             }                
