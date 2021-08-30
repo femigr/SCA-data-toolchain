@@ -12,17 +12,15 @@ pipeline {
             steps {
                 sh '''
                 echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile
-                echo "\nRUN apt source ${PACKAGE_NAME}" >> Dockerfile
-                echo "\nRUN cd *" >> Dockerfile
-                echo "\nRUN codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite" >> Dockerfile
-                echo "\nRUN codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile         
+                echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile
+                echo "\nRUN cd * && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile    
                 '''
             }
         }
         stage('Get Source Package') {
             steps {
                 dir('sources') {
-                    sh 'apt source $PACKAGE_NAME'
+                    sh 'apt-get source $PACKAGE_NAME'
                 }
             }
         }
