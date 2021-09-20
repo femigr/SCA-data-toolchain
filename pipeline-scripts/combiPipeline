@@ -12,10 +12,10 @@ pipeline {
         stage('Prepare Dockerfile') {
             steps {
                 sh '''
-                echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile
-                echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile
-                echo "\nRUN mv \\\$(ls -l | grep -e '^d' | awk '{print \\\$9}') scadatasource" >> Dockerfile
-                echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile    
+                echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile_${UBUNTU_VERSION}
+                echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile_${UBUNTU_VERSION}
+                echo "\nRUN mv \\\$(ls -l | grep -e '^d' | awk '{print \\\$9}') scadatasource" >> Dockerfile_${UBUNTU_VERSION}
+                echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile_${UBUNTU_VERSION}
                 '''
             }
         }
@@ -23,7 +23,7 @@ pipeline {
             parallel{
                 stage('CodeQl') {
                     agent { dockerfile {
-                        filename 'Dockerfile_${UBUNTU_VERSION}'
+                        filename 'Dockerfile_' + env.UBUNTU_VERSION
                         reuseNode true
                         args '-u root:root'
                     } }
