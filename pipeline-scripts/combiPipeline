@@ -34,7 +34,8 @@ pipeline {
                     agent { dockerfile {
                         filename 'Dockerfile_codeql'
                         reuseNode true
-                        args '-u root:root --build-arg VERSION=${IMAGE_TAG}'
+                        args '-u root:root'
+                        additionalBuildArgs '--build-arg VERSION=${IMAGE_TAG}'
                     } }
                     steps{
                         sh 'lsb_release -a'
@@ -58,7 +59,7 @@ pipeline {
                     agent { dockerfile {
                         filename 'Dockerfile'
                         reuseNode true
-                        args '--build-arg VERSION=${IMAGE_TAG}'
+                        additionalBuildArgs '--build-arg VERSION=${IMAGE_TAG}'
                     } }
                     steps{
                         sh 'lsb_release -a'
