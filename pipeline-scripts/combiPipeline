@@ -3,7 +3,7 @@ pipeline {
     parameters {
         string(name: 'PACKAGE_NAME', defaultValue: 'rolldice', description: 'Name of the package to be scanned');
         string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
-        choice(name: 'UBUNTU_VERSION', choices: ['14_10', '21_04'], description: '');
+        choice(name: 'UBUNTU_VERSION', choices: ['12_04', '21_04'], description: '');
     }
     options {
         timeout(time: 30, unit: 'MINUTES', activity: true)
@@ -11,12 +11,20 @@ pipeline {
     stages {
         stage('Prepare Dockerfile') {
             steps {
-                sh 'cp Dockerfile_${UBUNTU_VERSION} Dockerfile_${UBUNTU_VERSION}_codeql'
+                script{
+                    if(env.VERSION == '12_04'){
+                        env.IMAGE_TAG = "precise-20151028"
+                    }
+                    if(env.VERSION == '21_04'){
+                        env.IMAGE_TAG = "xenial-20210804"
+                    }
+                }
+                sh 'cp Dockerfile Dockerfile_codeql'
                 sh '''
-                echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile_${UBUNTU_VERSION}_codeql
-                echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile_${UBUNTU_VERSION}_codeql
-                echo "\nRUN mv \\\$(ls -l | grep -e '^d' | awk '{print \\\$9}') scadatasource" >> Dockerfile_${UBUNTU_VERSION}_codeql
-                echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile_${UBUNTU_VERSION}_codeql
+                echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile_codeql
+                echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile_codeql
+                echo "\nRUN mv \\\$(ls -l | grep -e '^d' | awk '{print \\\$9}') scadatasource" >> Dockerfile_codeql
+                echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile_codeql
                 '''
             }
         }
@@ -24,12 +32,12 @@ pipeline {
             parallel{
                 stage('CodeQl') {
                     agent { dockerfile {
-                        filename 'Dockerfile_' + env.UBUNTU_VERSION + '_codeql'
+                        filename 'Dockerfile_codeql'
                         reuseNode true
-                        args '-u root:root'
+                        args '-u root:root --build-arg VERSION=${IMAGE_TAG}'
                     } }
                     steps{
-                        
+                        sh 'lsb_release -a'
                         sh 'cd /stuff/sources/scadatasource && cp ${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif ${WORKSPACE}'
                         sh 'ls -a'
                         archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false 
@@ -48,11 +56,12 @@ pipeline {
                 }
                 stage('cppcheck') {
                     agent { dockerfile {
-                        filename 'Dockerfile_' + env.UBUNTU_VERSION
+                        filename 'Dockerfile'
                         reuseNode true
-                        args '-u root:root'
+                        args '--build-arg VERSION=${IMAGE_TAG}'
                     } }
                     steps{
+                        sh 'lsb_release -a'
                         dir('cppcheck') {
                             sh 'apt-get source $PACKAGE_NAME'
                             sh 'cppcheck --xml ./ 2> ${PACKAGE_NAME}_${UBUNTU_VERSION}.xml'

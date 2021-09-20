@@ -1,4 +1,5 @@
-FROM ubuntu:xenial-20210804
+ARG VERSION=xenial-20210804
+FROM ubuntu:${VERSION}
 
 ADD environment/certs/* /etc/ssl/certs/
 
@@ -10,7 +11,7 @@ RUN apt-get update && apt-get upgrade -y
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN apt-get install -y tzdata
 
-RUN apt-get install wget tar build-essential fakeroot devscripts make -y
+RUN apt-get install wget tar build-essential fakeroot devscripts make libpcre3 libpcre3-dev -y
 
 #CodeQl:
 WORKDIR /stuff
