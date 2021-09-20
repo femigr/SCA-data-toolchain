@@ -1,7 +1,7 @@
 pipeline {
     agent any
     parameters {
-        string(name: 'PACKAGE_NAME', defaultValue: 'openssl', description: 'Name of the package to be scanned');
+        string(name: 'PACKAGE_NAME', defaultValue: 'rolldice', description: 'Name of the package to be scanned');
         string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
         choice(name: 'UBUNTU_VERSION', choices: ['14_10', '21_04'], description: '');
     }
@@ -15,7 +15,7 @@ pipeline {
                 echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile_${UBUNTU_VERSION}
                 echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile_${UBUNTU_VERSION}
                 echo "\nRUN mv \\\$(ls -l | grep -e '^d' | awk '{print \\\$9}') scadatasource" >> Dockerfile_${UBUNTU_VERSION}
-                echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile_${UBUNTU_VERSION}
+                echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile_${UBUNTU_VERSION}
                 '''
             }
         }
