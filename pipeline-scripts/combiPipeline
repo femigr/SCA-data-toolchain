@@ -3,6 +3,7 @@ pipeline {
     parameters {
         string(name: 'PACKAGE_NAME', defaultValue: 'openssl', description: 'Name of the package to be scanned');
         string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
+        choice(name: 'UBUNTU_VERSION', choices: ['14_10', '21_04'], description: '');
     }
     options {
         timeout(time: 30, unit: 'MINUTES', activity: true)
@@ -22,6 +23,7 @@ pipeline {
             parallel{
                 stage('CodeQl') {
                     agent { dockerfile {
+                        filename 'Dockerfile_${UBUNTU_VERSION}'
                         reuseNode true
                         args '-u root:root'
                     } }

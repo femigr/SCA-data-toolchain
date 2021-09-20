@@ -1,7 +1,8 @@
-FROM ubuntu:latest
+FROM ubuntu:xenial-20210804
 
-ADD environment/sources.list /etc/apt/sources.list
 ADD environment/certs/* /etc/ssl/certs/
+
+RUN sed -i '/deb-src/s/^# //' /etc/apt/sources.list && apt update
 
 RUN apt-get update && apt-get upgrade -y
 
