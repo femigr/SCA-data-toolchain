@@ -10,8 +10,9 @@ RUN apt-get update && apt-get upgrade -y
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN apt-get install -y tzdata
 
-RUN apt-get install wget tar build-essential fakeroot devscripts -y
+RUN apt-get install wget tar build-essential fakeroot devscripts make -y
 
+#CodeQl:
 WORKDIR /stuff
 
 RUN wget -q https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz
@@ -22,7 +23,6 @@ RUN chmod +x codeql
 WORKDIR /stuff/codeql/tools/linux64/java/bin
 RUN chmod +x java
 
-                       
 ENV PATH="${PATH}:/stuff/codeql"
 
 RUN codeql resolve qlpacks
@@ -32,6 +32,16 @@ RUN codeql query compile cpp-lgtm-full.qls
 
 RUN codeql query compile --threads=0 /stuff/codeql/qlpacks/*/codeql-suites/*.qls
 
+#Cppcheck:
+WORKDIR /stuff
+RUN wget -q https://github.com/danmar/cppcheck/archive/2.5.tar.gz
+RUN tar -xvzf 2.5.tar.gz
+WORKDIR /stuff/cppcheck-2.5
+RUN make MATCHCOMPILER=yes FILESDIR=/usr/share/cppcheck HAVE_RULES=yes CXXFLAGS="-O2 -DNDEBUG -Wall -Wno-sign-compare -Wno-unused-function"
+
+RUN chmod +x cppcheck
+ENV PATH="${PATH}:/stuff/cppcheck-2.5"
+#___________________________
 WORKDIR /stuff/sources
 
 #RUN apt-get source openssl

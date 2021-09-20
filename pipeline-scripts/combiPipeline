@@ -11,11 +11,12 @@ pipeline {
     stages {
         stage('Prepare Dockerfile') {
             steps {
+                sh 'cp Dockerfile_${UBUNTU_VERSION} Dockerfile_${UBUNTU_VERSION}_codeql'
                 sh '''
-                echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile_${UBUNTU_VERSION}
-                echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile_${UBUNTU_VERSION}
-                echo "\nRUN mv \\\$(ls -l | grep -e '^d' | awk '{print \\\$9}') scadatasource" >> Dockerfile_${UBUNTU_VERSION}
-                echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile_${UBUNTU_VERSION}
+                echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile_${UBUNTU_VERSION}_codeql
+                echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile_${UBUNTU_VERSION}_codeql
+                echo "\nRUN mv \\\$(ls -l | grep -e '^d' | awk '{print \\\$9}') scadatasource" >> Dockerfile_${UBUNTU_VERSION}_codeql
+                echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile_${UBUNTU_VERSION}_codeql
                 '''
             }
         }
@@ -23,7 +24,7 @@ pipeline {
             parallel{
                 stage('CodeQl') {
                     agent { dockerfile {
-                        filename 'Dockerfile_' + env.UBUNTU_VERSION
+                        filename 'Dockerfile_' + env.UBUNTU_VERSION + '_codeql'
                         reuseNode true
                         args '-u root:root'
                     } }
@@ -46,6 +47,11 @@ pipeline {
                     }
                 }
                 stage('cppcheck') {
+                    agent { dockerfile {
+                        filename 'Dockerfile_' + env.UBUNTU_VERSION
+                        reuseNode true
+                        args '-u root:root'
+                    } }
                     steps{
                         dir('cppcheck') {
                             sh 'apt-get source $PACKAGE_NAME'
