@@ -3,7 +3,7 @@ FROM ubuntu:${VERSION}
 
 ADD environment/certs/* /etc/ssl/certs/
 
-RUN sed -i '/deb-src/s/^# //' /etc/apt/sources.list && apt update
+RUN sed -i '/deb-src/s/^# //' /etc/apt/sources.list
 
 RUN apt-get update && apt-get upgrade -y
 

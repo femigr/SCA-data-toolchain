@@ -12,11 +12,13 @@ pipeline {
         stage('Prepare Dockerfile') {
             steps {
                 script{
-                    if(env.VERSION == '12_04'){
+                    if(env.UBUNTU_VERSION == '12_04'){
                         env.IMAGE_TAG = "precise-20151028"
+                        echo 'Version set to 12_04'
                     }
-                    if(env.VERSION == '21_04'){
+                    if(env.UBUNTU_VERSION == '21_04'){
                         env.IMAGE_TAG = "xenial-20210804"
+                        echo 'Version set to 21_04'
                     }
                 }
                 sh 'cp Dockerfile Dockerfile_codeql'
