@@ -29,7 +29,7 @@ pipeline {
                     } }
                     steps{
                         
-                        sh 'cd /stuff/sources/scadatasource && cp ${PACKAGE_NAME}.sarif ${WORKSPACE}'
+                        sh 'cd /stuff/sources/scadatasource && cp ${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif ${WORKSPACE}'
                         sh 'ls -a'
                         archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false 
 
@@ -49,7 +49,7 @@ pipeline {
                     steps{
                         dir('cppcheck') {
                             sh 'apt-get source $PACKAGE_NAME'
-                            sh 'cppcheck --xml ./ 2> ${PACKAGE_NAME}.xml'
+                            sh 'cppcheck --xml ./ 2> ${PACKAGE_NAME}_${UBUNTU_VERSION}.xml'
                             archiveArtifacts artifacts: '*.xml', defaultExcludes: false
                         }
                     }
