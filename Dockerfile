@@ -6,7 +6,8 @@ ADD environment/certs/* /etc/ssl/certs/
 RUN sed -i '/deb-src/s/^# //' /etc/apt/sources.list
 
 RUN if [ "$VERSION" = "precise-20151028" ]; \
-then sed s/archive/old-releases/g /etc/apt/sources.list; \
+then sed s/archive/old-releases/g /etc/apt/sources.list > /etc/apt/sources.list && cat /etc/apt/sources.list; \
+else echo "Using standard repos" && cat /etc/apt/sources.list; \
 fi
 
 RUN apt-get update && apt-get upgrade -y
