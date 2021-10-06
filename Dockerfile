@@ -1,13 +1,15 @@
 ARG VERSION=xenial-20210804
 FROM ubuntu:${VERSION}
+ARG VERSION
 
 ADD environment/certs/* /etc/ssl/certs/
 
 RUN sed -i '/deb-src/s/^# //' /etc/apt/sources.list
 
+RUN echo "$VERSION"
 RUN if [ "$VERSION" = "precise-20151028" ]; \
-then sed s/archive/old-releases/g /etc/apt/sources.list > /etc/apt/sources.list && cat /etc/apt/sources.list; \
-else echo "Using standard repos" && cat /etc/apt/sources.list; \
+then sed -i s/archive/old-releases/g /etc/apt/sources.list; \
+else echo "Using standard repos ${VERSION}" && cat /etc/apt/sources.list; \
 fi
 
 RUN apt-get update && apt-get upgrade -y
@@ -16,7 +18,8 @@ RUN apt-get update && apt-get upgrade -y
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN apt-get install -y tzdata
 
-RUN apt-get install wget tar build-essential fakeroot devscripts make libpcre3 libpcre3-dev -y
+RUN apt-get install wget tar build-essential fakeroot devscripts -y
+
 
 #CodeQl:
 WORKDIR /stuff
@@ -38,17 +41,11 @@ RUN codeql query compile cpp-lgtm-full.qls
 
 RUN codeql query compile --threads=0 /stuff/codeql/qlpacks/*/codeql-suites/*.qls
 
-#Cppcheck:
-WORKDIR /stuff
-RUN wget -q https://github.com/danmar/cppcheck/archive/2.5.tar.gz
-RUN tar -xvzf 2.5.tar.gz
-WORKDIR /stuff/cppcheck-2.5
-RUN make MATCHCOMPILER=yes FILESDIR=/usr/share/cppcheck HAVE_RULES=yes CXXFLAGS="-O2 -DNDEBUG -Wall -Wno-sign-compare -Wno-unused-function"
 
-RUN chmod +x cppcheck
-ENV PATH="${PATH}:/stuff/cppcheck-2.5"
 #___________________________
 WORKDIR /stuff/sources
+
+ENV PATH="${PATH}:/stuff"
 
 #RUN apt-get source openssl
 #RUN apt-get build-dep openssl -y
