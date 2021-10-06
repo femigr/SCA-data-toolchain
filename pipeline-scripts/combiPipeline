@@ -27,7 +27,7 @@ pipeline {
                 echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile_codeql
                 echo "\nRUN mv \\\$(ls -l | grep -e '^d' | awk '{print \\\$9}') scadatasource" >> Dockerfile_codeql
                 echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile_codeql
-                echo "\nADD tools/cppcheck-2.5/* /opt/cppcheck/" >> Dockerfile
+                echo "\nADD tools/cppcheck-2.5/ /opt/cppcheck/" >> Dockerfile
                 '''
             }
         }
@@ -81,7 +81,7 @@ pipeline {
                                 sh 'lsb_release -a'
                                 dir('cppcheck') {
                                     sh 'apt-get source $PACKAGE_NAME'
-                                    sh 'cppcheck --xml ./ 2> ${PACKAGE_NAME}_${UBUNTU_VERSION}.xml'
+                                    sh '/opt/cppcheck/cppcheck --xml ./ 2> ${PACKAGE_NAME}_${UBUNTU_VERSION}.xml'
                                     archiveArtifacts artifacts: '*.xml', defaultExcludes: false
                                 }
                             }
