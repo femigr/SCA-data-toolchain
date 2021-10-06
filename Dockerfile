@@ -45,7 +45,7 @@ RUN codeql query compile --threads=0 /stuff/codeql/qlpacks/*/codeql-suites/*.qls
 #___________________________
 WORKDIR /stuff/sources
 
-ENV PATH="${PATH}:/stuff"
+ENV PATH="${PATH}:/opt/cppcheck"
 
 #RUN apt-get source openssl
 #RUN apt-get build-dep openssl -y
