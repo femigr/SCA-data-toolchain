@@ -24,7 +24,7 @@ RUN apt-get install wget tar build-essential fakeroot devscripts -y
 #CodeQl:
 WORKDIR /stuff
 
-RUN wget -q https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz
+RUN wget -q https://github.com/github/codeql-action/releases/download/codeql-bundle-20211005/codeql-bundle-linux64.tar.gz
 RUN tar -xvzf codeql-bundle-linux64.tar.gz
 WORKDIR /stuff/codeql
 RUN chmod +x codeql
