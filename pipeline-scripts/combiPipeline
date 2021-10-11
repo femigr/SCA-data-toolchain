@@ -66,7 +66,7 @@ pipeline {
                                     sh 'wget -q https://github.com/danmar/cppcheck/archive/2.5.tar.gz'
                                     sh 'tar -xvzf 2.5.tar.gz'
                                     dir('cppcheck-2.5'){
-                                        sh 'g++ -o cppcheck -std=c++11 -Iexternals -Iexternals/simplecpp -Iexternals/tinyxml2 -Iexternals/picojson -Ilib cli/*.cpp lib/*.cpp externals/simplecpp/simplecpp.cpp externals/tinyxml2/*.cpp -static'
+                                        sh 'g++ -o cppcheck -std=c++11 -Iexternals -Iexternals/simplecpp -Iexternals/tinyxml2 -Iexternals/picojson -Ilib cli/*.cpp lib/*.cpp externals/simplecpp/simplecpp.cpp externals/tinyxml2/*.cpp -static -O3'
                                     }
                                 }
                             }
