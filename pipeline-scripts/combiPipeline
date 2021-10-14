@@ -2,8 +2,14 @@ pipeline {
     agent any
     parameters {
         string(name: 'PACKAGE_NAME', defaultValue: 'rolldice', description: 'Name of the package to be scanned');
-        string(name: 'LANGUAGE', defaultValue: 'cpp', description: 'The programming language');
         choice(name: 'UBUNTU_VERSION', choices: ['12_04', '21_04'], description: '');
+    }
+    environment {
+        SSH_CREDENTIALS_ID = 'ssh_credentials';
+        DATA_DIR = 'sca-data';
+        SSH_HOST = 'localhost';
+        CODEQL_REPORT_NAME = "${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif";
+        CPPCHECK_REPORT_NAME = "${PACKAGE_NAME}_${UBUNTU_VERSION}.xml";
     }
     options {
         timeout(time: 30, unit: 'MINUTES', activity: true)
@@ -26,7 +32,7 @@ pipeline {
                 echo "\nRUN apt-get build-dep ${PACKAGE_NAME} -y" >> Dockerfile_codeql
                 echo "\nRUN apt-get source ${PACKAGE_NAME}" >> Dockerfile_codeql
                 echo "\nRUN mv \\\$(ls -l | grep -e '^d' | awk '{print \\\$9}') scadatasource" >> Dockerfile_codeql
-                echo "\nRUN cd scadatasource && codeql database create --language=${LANGUAGE} codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif codeQlDb cpp-lgtm-full.qls" >> Dockerfile_codeql
+                echo "\nRUN cd scadatasource && codeql database create --language=cpp codeQlDb --command='debuild -b -uc -us' --overwrite && codeql database analyze --ram=1024 --format=sarif-latest --output=${CODEQL_REPORT_NAME} codeQlDb cpp-lgtm-full.qls" >> Dockerfile_codeql
                 echo "\nADD tools/cppcheck-2.5/ /opt/cppcheck/" >> Dockerfile
                 '''
             }
@@ -42,20 +48,9 @@ pipeline {
                     } }
                     steps{
                         sh 'lsb_release -a'
-                        sh 'cd /stuff/sources/scadatasource && cp ${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif ${WORKSPACE}'
+                        sh 'cd /stuff/sources/scadatasource && cp ${CODEQL_REPORT_NAME} ${WORKSPACE}'
                         sh 'ls -a'
                         archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false 
-
-                        /*dir('sources'){
-                            script{
-                                sh '''
-                                    ls -a
-                                    cd *
-                                    codeql database create --language=${LANGUAGE} codeQlDb --command="debuild -b -uc -us" --overwrite
-                                    codeql database analyze --ram=1024 --format=sarif-latest --output=${PACKAGE_NAME}.sarif codeQlDb cpp-lgtm-full.qls
-                                '''
-                            }
-                        }*/
                     }
                 }
                 stage('cppcheck') {
@@ -81,16 +76,37 @@ pipeline {
                                 sh 'lsb_release -a'
                                 dir('cppcheck') {
                                     sh 'apt-get source $PACKAGE_NAME'
-                                    sh '/opt/cppcheck/cppcheck --xml ./ 2> ${PACKAGE_NAME}_${UBUNTU_VERSION}.xml'
+                                    sh '/opt/cppcheck/cppcheck --xml ./ 2> ${CPPCHECK_REPORT_NAME}'
+                                    
+                                    sh "apt-cache show ${PACKAGE_NAME} | sed -n -e 's/^.*Version: //p' >> ${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt"
+
                                     archiveArtifacts artifacts: '*.xml', defaultExcludes: false
+                                    archiveArtifacts artifacts: '${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt', defaultExcludes: false
                                 }
                             }
                         }
                     }
                     
                 }
-            }                
+            }           
         }
+        stage('Publish Results') {
+            steps{
+                withCredentials(bindings: [sshUserPrivateKey(credentialsId: env.SSH_CREDENTIALS_ID, \
+                                            keyFileVariable: 'SSH_KEY', \
+                                            passphraseVariable: '', \
+                                            usernameVariable: 'SSH_USER')]) {
+                    
+                    // create a directory:
+                    sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST} "mkdir -p ${DATA_DIR}/${PACKAGE_NAME}"'
+
+                    // use scp to push the artifacts
+                    sh 'scp -i ${SSH_KEY} ${CODEQL_REPORT_NAME} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${CODEQL_REPORT_NAME}'
+                    sh 'scp -i ${SSH_KEY} cppcheck/${CPPCHECK_REPORT_NAME} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${CPPCHECK_REPORT_NAME}'
+                    sh 'scp -i ${SSH_KEY} cppcheck/${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt'
+                }
+            }
+        }     
     }
     post {
         always {
