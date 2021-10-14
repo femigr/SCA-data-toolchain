@@ -81,7 +81,7 @@ pipeline {
                                     sh "apt-cache show ${PACKAGE_NAME} | sed -n -e 's/^.*Version: //p' >> ${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt"
 
                                     archiveArtifacts artifacts: '*.xml', defaultExcludes: false
-                                    archiveArtifacts artifacts: '${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt', defaultExcludes: false
+                                    archiveArtifacts artifacts: "${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt", defaultExcludes: false
                                 }
                             }
                         }
