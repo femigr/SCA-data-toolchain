@@ -7,6 +7,7 @@ pipeline {
     environment {
         SSH_CREDENTIALS_ID = 'ssh_credentials';
         DATA_DIR = 'sca-data';
+        CACHE_DIR = 'cache';
         SSH_HOST = 'localhost';
         CODEQL_REPORT_NAME = "${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif";
         CPPCHECK_REPORT_NAME = "${PACKAGE_NAME}_${UBUNTU_VERSION}.xml";
@@ -57,11 +58,37 @@ pipeline {
                     stages{
                         stage('Setup') {
                             steps{
-                                dir('tools'){
-                                    sh 'wget -q https://github.com/danmar/cppcheck/archive/2.5.tar.gz'
-                                    sh 'tar -xvzf 2.5.tar.gz'
-                                    dir('cppcheck-2.5'){
-                                        sh 'g++ -o cppcheck -std=c++11 -Iexternals -Iexternals/simplecpp -Iexternals/tinyxml2 -Iexternals/picojson -Ilib cli/*.cpp lib/*.cpp externals/simplecpp/simplecpp.cpp externals/tinyxml2/*.cpp -static -O3'
+                                script{
+                                    try{
+                                        withCredentials(bindings: [sshUserPrivateKey(credentialsId: env.SSH_CREDENTIALS_ID, \
+                                            keyFileVariable: 'SSH_KEY', \
+                                            passphraseVariable: '', \
+                                            usernameVariable: 'SSH_USER')]) {
+
+                                            // getting cppcheck from cache
+                                            sh 'mkdir tools/cppcheck-2.5'
+                                            sh 'scp -r -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST}:${CACHE_DIR}/cppcheck ${WORKSPACE}/tools/cppcheck-2.5/'
+                                            echo 'Retrieved cppcheck from cache'
+                                        }
+                                    }
+                                    catch{
+                                        dir('tools'){
+                                            echo 'Building cppcheck'
+                                            sh 'wget -q https://github.com/danmar/cppcheck/archive/2.5.tar.gz'
+                                            sh 'tar -xvzf 2.5.tar.gz'
+                                            dir('cppcheck-2.5'){
+                                                sh 'g++ -o cppcheck -std=c++11 -Iexternals -Iexternals/simplecpp -Iexternals/tinyxml2 -Iexternals/picojson -Ilib cli/*.cpp lib/*.cpp externals/simplecpp/simplecpp.cpp externals/tinyxml2/*.cpp -static -O3'
+                                            }
+
+                                            //storing the build for caching purposes
+                                            // create a directory:
+                                            sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST} "mkdir -p ${DATA_DIR}/${PACKAGE_NAME}"'
+
+                                            //store the folder
+                                            sh 'scp -i ${SSH_KEY} cppcheck-2.5 ${SSH_USER}@${SSH_HOST}:${CACHE_DIR}/cppcheck'
+
+                                            echo 'Stored cppcheck for future builds'
+                                        }
                                     }
                                 }
                             }
