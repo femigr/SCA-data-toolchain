@@ -66,12 +66,12 @@ pipeline {
                                             usernameVariable: 'SSH_USER')]) {
 
                                             // getting cppcheck from cache
-                                            sh 'mkdir tools/cppcheck-2.5'
-                                            sh 'scp -r -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST}:${CACHE_DIR}/cppcheck ${WORKSPACE}/tools/cppcheck-2.5/'
+                                            sh 'mkdir -p tools'
+                                            sh 'scp -r -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST}:${CACHE_DIR}/cppcheck-2.5 ${WORKSPACE}/tools/'
                                             echo 'Retrieved cppcheck from cache'
                                         }
                                     }
-                                    catch{
+                                    catch(err){
                                         dir('tools'){
                                             echo 'Building cppcheck'
                                             sh 'wget -q https://github.com/danmar/cppcheck/archive/2.5.tar.gz'
@@ -81,12 +81,16 @@ pipeline {
                                             }
 
                                             //storing the build for caching purposes
+                                            withCredentials(bindings: [sshUserPrivateKey(credentialsId: env.SSH_CREDENTIALS_ID, \
+                                                keyFileVariable: 'SSH_KEY', \
+                                                passphraseVariable: '', \
+                                                usernameVariable: 'SSH_USER')]) {
                                             // create a directory:
-                                            sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST} "mkdir -p ${DATA_DIR}/${PACKAGE_NAME}"'
-
-                                            //store the folder
-                                            sh 'scp -i ${SSH_KEY} cppcheck-2.5 ${SSH_USER}@${SSH_HOST}:${CACHE_DIR}/cppcheck'
-
+                                                sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST} "mkdir -p ${CACHE_DIR}"'
+    
+                                                //store the folder
+                                                sh 'scp -r -i ${SSH_KEY} cppcheck-2.5 ${SSH_USER}@${SSH_HOST}:${CACHE_DIR}'
+                                            }
                                             echo 'Stored cppcheck for future builds'
                                         }
                                     }
