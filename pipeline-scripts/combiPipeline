@@ -53,20 +53,6 @@ pipeline {
                         sh 'cd /stuff/sources/scadatasource && cp ${CODEQL_REPORT_NAME} ${WORKSPACE}'
                         sh 'ls -a'
                         archiveArtifacts artifacts: '**/*.sarif', defaultExcludes: false 
-                        withCredentials(bindings: [sshUserPrivateKey(credentialsId: env.SSH_CREDENTIALS_ID, \
-                                            keyFileVariable: 'SSH_KEY', \
-                                            passphraseVariable: '', \
-                                            usernameVariable: 'SSH_USER')]) {
-                    
-                            // create a directory:
-                            sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST} "mkdir -p ${DATA_DIR}/${PACKAGE_NAME}"'
-
-                            // use scp to push the artifacts
-                            sh "apt-cache show ${PACKAGE_NAME} | sed -n -e 's/^.*Version: //p' >> ${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt"
-
-                            sh 'scp -i ${SSH_KEY} ${CODEQL_REPORT_NAME} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${CODEQL_REPORT_NAME}'
-                            sh 'scp -i ${SSH_KEY} ${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt'
-                        }
                     }
                 }
                 stage('cppcheck') {
@@ -128,20 +114,6 @@ pipeline {
 
                                     archiveArtifacts artifacts: '*.xml', defaultExcludes: false
                                     archiveArtifacts artifacts: "${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt", defaultExcludes: false
-
-
-                                    withCredentials(bindings: [sshUserPrivateKey(credentialsId: env.SSH_CREDENTIALS_ID, \
-                                            keyFileVariable: 'SSH_KEY', \
-                                            passphraseVariable: '', \
-                                            usernameVariable: 'SSH_USER')]) {
-                                        
-                                        // create a directory:
-                                        sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST} "mkdir -p ${DATA_DIR}/${PACKAGE_NAME}"'
-
-                                        // use scp to push the artifacts
-                                        sh 'scp -i ${SSH_KEY} ${CPPCHECK_REPORT_NAME} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${CPPCHECK_REPORT_NAME}'
-                                        sh 'scp -i ${SSH_KEY} ${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt'
-                                    }
                                 }
                             }
                         }
