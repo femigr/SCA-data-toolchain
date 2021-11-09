@@ -128,3 +128,9 @@ local.properties
  
 # PDT-specific
 .buildpath
+
+######################
+# Python
+######################
+
+sca_data_processing/__pycache__/
