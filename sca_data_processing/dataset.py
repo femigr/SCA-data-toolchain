@@ -1,11 +1,16 @@
 from typing import runtime_checkable
 import sca_data_processing.parser as parser
+import sca_data_processing.helpers as helpers
 
 # Datset class:
 class Dataset:
-    def __init__(self):
+    def __init__(self, path):
         self.old_issues = []
         self.new_issues = []
+
+        packages = helpers.get_full_package_files(path)
+        for package in packages:
+            self.add_package(package)
 
     def get_issue_classes(self):
         return self.issue_classes.keys()
@@ -27,3 +32,4 @@ class Dataset:
                 self.new_issues += parser.parse_sca_xml(filepath, package['name'])
             elif filepath.endswith('.sarif'):
                 self.new_issues += parser.parse_sarif(filepath, package['name'])
+    
