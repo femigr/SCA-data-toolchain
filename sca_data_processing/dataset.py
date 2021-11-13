@@ -12,11 +12,8 @@ class Dataset:
         for package in packages:
             self.add_package(package)
 
-    def get_issue_classes(self):
-        return self.issue_classes.keys()
-    
-    def get_issues(self, issue_key):
-        return self.issue_classes[issue_key]
+    def get_issues(self):
+        return self.old_issues + self.new_issues
 
     def add_package(self, package):
         for scan in package['scans']['old']:

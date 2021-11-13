@@ -7,11 +7,19 @@ amount_of_scans = 2
 
 def get_packages(path):
     """
-    Get all packages (folders) in the given path.
+    Get all packages (folders) in the given path. Also returns a bool that is true if the folder itself is the package.
     """
-    return [name for name in os.listdir(path) if os.path.isdir('%s/%s' % (path, name))]
+    folders = [name for name in os.listdir(path) if os.path.isdir('%s/%s' % (path, name))]
+    if folders == []:
+        filenames = ", ".join(os.listdir(path))
+        for ext in file_extensions:
+            if old_postfix + ext in filenames or new_postfix + ext in filenames:
+                return [os.path.basename(path)], True # if the folder itself is the package
+        raise Exception("No packages found in %s" % path)
+    else:
+        return folders, False # if the folder contains packages
     
-def get_files(path, package):
+def get_files(path, package, path_is_package = False):
     """
     Get all files in the given package folder.
     """
@@ -22,7 +30,12 @@ def get_package_files(path):
     Get all paths of all files of scanned packages in the given path.
     """
     files = {}
-    for package in get_packages(path):
+    packages, is_package_itself = get_packages(path)
+
+    if is_package_itself:
+        path = path[:-len(packages[0])-1] # remove the package name from the path including the /
+
+    for package in packages:
         files.update({package: get_files(path, package)})
     
     packages = []
