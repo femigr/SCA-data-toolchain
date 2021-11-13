@@ -10,7 +10,7 @@ parser.add_argument('path', metavar='path', type=str,
 args = parser.parse_args()
 
 if args.command == "get_src_paths":
-    paths = sca.get_src_file_paths("../sca-data/rolldice")
+    paths = sca.get_src_file_paths(args.path)
     for path in paths:
         print(path)
 

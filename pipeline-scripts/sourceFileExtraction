@@ -27,11 +27,12 @@ pipeline {
                                             usernameVariable: 'SSH_USER')]) {
                     
                     // get the results:
-                    sh 'scp -r -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME} ${WORKSPACE}/results/'
+                    sh 'mkdir -p ${WORKSPACE}/results/${PACKAGE_NAME}'
+                    sh 'scp -r -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME} ${WORKSPACE}/results/${PACKAGE_NAME}'
                     dir("${WORKSPACE}/results/") {
                         sh 'ls -a -R'
                     }
-                    sh "python3 -m sca-data-processing get_src_paths ${WORKSPACE}/results/${PACKAGE_NAME} > files.txt"
+                    sh "python3 -m sca_data_processing get_src_paths ${WORKSPACE}/results/${PACKAGE_NAME} > files.txt"
                 }
             }
         }
