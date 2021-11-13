@@ -1,0 +1,93 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'PACKAGE_NAME', defaultValue: 'rolldice', description: 'Name of the package to be scanned');
+    }
+    environment {
+        SSH_CREDENTIALS_ID = 'ssh_credentials';
+        DATA_DIR = 'sca-data';
+        SSH_HOST = 'localhost';
+
+        OLD_IMAGE_TAG = "precise-20151028"
+        NEW_IMAGE_TAG = "xenial-20210804"
+
+        CODEQL_REPORT_NAME = "${PACKAGE_NAME}_${UBUNTU_VERSION}.sarif";
+        CPPCHECK_REPORT_NAME = "${PACKAGE_NAME}_${UBUNTU_VERSION}.xml";
+    }
+    options {
+        timeout(time: 180, unit: 'MINUTES', activity: false);
+        parallelsAlwaysFailFast();
+    }
+    stages {
+        stage('Retrieve result files') {
+            steps{
+                withCredentials(bindings: [sshUserPrivateKey(credentialsId: env.SSH_CREDENTIALS_ID, \
+                                            keyFileVariable: 'SSH_KEY', \
+                                            passphraseVariable: '', \
+                                            usernameVariable: 'SSH_USER')]) {
+                    
+                    // get the results:
+                    sh 'scp -r -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME} ${WORKSPACE}/results/'
+                    dir('${WORKSPACE}/results/') {
+                        sh 'ls -a -R'
+                    }
+                    sh 'python3 -m sca-data-processing get_src_paths ${WORKSPACE}/results/${PACKAGE_NAME} > files.txt'
+                }
+            }
+        }
+        stage('Retrieve source files') {
+            parallel{
+                stage('Old') {
+                    agent { dockerfile {
+                        filename 'Dockerfile_codeql'
+                        reuseNode true
+                        additionalBuildArgs '--build-arg VERSION=${OLD_IMAGE_TAG}'
+                    } }
+                    steps{
+                        sh 'lsb_release -a'
+                        dir('old') {
+                            sh 'apt-get source $PACKAGE_NAME'
+                        }
+                        archiveSourceFiles package_name: env.PACKAGE_NAME, rootdir: '${WORKSPACE}/old'
+                    }
+                }
+                stage('New') {
+                    agent { dockerfile {
+                        filename 'Dockerfile'
+                        reuseNode true
+                        additionalBuildArgs '--build-arg VERSION=${NEW_IMAGE_TAG}'
+                    } }
+                    steps{
+                        sh 'lsb_release -a'
+                        dir('new'){
+                            sh 'apt-get source $PACKAGE_NAME'
+                        }
+                        archiveSourceFiles package_name: env.PACKAGE_NAME, rootdir: '${WORKSPACE}/new'
+                    }
+                }
+            }           
+        }
+        stage('Publish Results') {
+            steps{
+                withCredentials(bindings: [sshUserPrivateKey(credentialsId: env.SSH_CREDENTIALS_ID, \
+                                            keyFileVariable: 'SSH_KEY', \
+                                            passphraseVariable: '', \
+                                            usernameVariable: 'SSH_USER')]) {
+                    
+                    // create a directory:
+                    sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST} "mkdir -p ${DATA_DIR}/${PACKAGE_NAME}"'
+
+                    // use scp to push the artifacts
+                    sh 'scp -i ${SSH_KEY} ${CODEQL_REPORT_NAME} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${CODEQL_REPORT_NAME}'
+                    sh 'scp -i ${SSH_KEY} cppcheck/${CPPCHECK_REPORT_NAME} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${CPPCHECK_REPORT_NAME}'
+                    sh 'scp -i ${SSH_KEY} cppcheck/${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt'
+                }
+            }
+        }     
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
