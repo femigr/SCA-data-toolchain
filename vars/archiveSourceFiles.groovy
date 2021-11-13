@@ -23,13 +23,13 @@ def call(Map params = [
                                             usernameVariable: 'SSH_USER')]) {
                     
             // create a directory:
-            sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${params.ssh_host} "mkdir -p ${params.data_dir}/${params.package_name}/source"'
+            sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${params.ssh_host} "mkdir -p ' + params.data_dir + '/' + params.package_name + '/source"'
 
             // use scp to push the artifacts
             
             for(file in files) {
                 absolute_file = rootdir + "/" + file 
-                sh 'scp -i ${SSH_KEY} ${absolute_file} ${SSH_USER}@${params.ssh_host}:${params.data_dir}/${params.package_name}/source/${file}'
+                sh 'scp -i ${SSH_KEY} ' + absolute_file + ' ${SSH_USER}@' + params.ssh_host + ':' + params.data_dir + '/' + params.package_name + '/source/' + file
             }
         }
     }

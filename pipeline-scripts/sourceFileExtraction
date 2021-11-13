@@ -28,10 +28,10 @@ pipeline {
                     
                     // get the results:
                     sh 'scp -r -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME} ${WORKSPACE}/results/'
-                    dir('${WORKSPACE}/results/') {
+                    dir("${WORKSPACE}/results/") {
                         sh 'ls -a -R'
                     }
-                    sh 'python3 -m sca-data-processing get_src_paths ${WORKSPACE}/results/${PACKAGE_NAME} > files.txt'
+                    sh "python3 -m sca-data-processing get_src_paths ${WORKSPACE}/results/${PACKAGE_NAME} > files.txt"
                 }
             }
         }
@@ -48,7 +48,7 @@ pipeline {
                         dir('old') {
                             sh 'apt-get source $PACKAGE_NAME'
                         }
-                        archiveSourceFiles package_name: env.PACKAGE_NAME, rootdir: '${WORKSPACE}/old'
+                        archiveSourceFiles package_name: env.PACKAGE_NAME, rootdir: "${WORKSPACE}/old"
                     }
                 }
                 stage('New') {
@@ -62,28 +62,11 @@ pipeline {
                         dir('new'){
                             sh 'apt-get source $PACKAGE_NAME'
                         }
-                        archiveSourceFiles package_name: env.PACKAGE_NAME, rootdir: '${WORKSPACE}/new'
+                        archiveSourceFiles package_name: env.PACKAGE_NAME, rootdir: "${WORKSPACE}/new"
                     }
                 }
             }           
         }
-        stage('Publish Results') {
-            steps{
-                withCredentials(bindings: [sshUserPrivateKey(credentialsId: env.SSH_CREDENTIALS_ID, \
-                                            keyFileVariable: 'SSH_KEY', \
-                                            passphraseVariable: '', \
-                                            usernameVariable: 'SSH_USER')]) {
-                    
-                    // create a directory:
-                    sh 'ssh -i ${SSH_KEY} ${SSH_USER}@${SSH_HOST} "mkdir -p ${DATA_DIR}/${PACKAGE_NAME}"'
-
-                    // use scp to push the artifacts
-                    sh 'scp -i ${SSH_KEY} ${CODEQL_REPORT_NAME} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${CODEQL_REPORT_NAME}'
-                    sh 'scp -i ${SSH_KEY} cppcheck/${CPPCHECK_REPORT_NAME} ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${CPPCHECK_REPORT_NAME}'
-                    sh 'scp -i ${SSH_KEY} cppcheck/${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt ${SSH_USER}@${SSH_HOST}:${DATA_DIR}/${PACKAGE_NAME}/${PACKAGE_NAME}_${UBUNTU_VERSION}_version.txt'
-                }
-            }
-        }     
     }
     post {
         always {
