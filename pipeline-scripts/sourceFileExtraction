@@ -68,7 +68,7 @@ pipeline {
                     dir("${WORKSPACE}/results/") {
                         sh 'ls -a -R'
                     }
-                    sh "python3 -m sca_data_processing get_src_paths ${WORKSPACE}/results/${PACKAGE_NAME} > files.txt"
+                    sh "python3 -m sca_data_processing get_src_paths ${WORKSPACE}/results/${PACKAGE_NAME} | tee files.txt"
                 }
             }
         }
