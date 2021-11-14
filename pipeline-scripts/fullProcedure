@@ -16,19 +16,19 @@ pipeline {
             parallel{
                 stage('Old') {
                     steps{
-                        build job: '/Scan_Pipelines/Combi-Scan' parameters: [string(name: 'PACKAGE_NAME', value: env.PACKAGE_NAME), string(name: 'UBUNTU_VERSION', value: env.OLD_VERSION)])
+                        build job: '/Scan_Pipelines/Combi-Scan', parameters: [string(name: 'PACKAGE_NAME', value: env.PACKAGE_NAME), string(name: 'UBUNTU_VERSION', value: env.OLD_VERSION)]
                     }
                 }
                 stage('New') {
                     steps{
-                        build job: '/Scan_Pipelines/Combi-Scan' parameters: [string(name: 'PACKAGE_NAME', value: env.PACKAGE_NAME), string(name: 'UBUNTU_VERSION', value: env.NEW_VERSION)])
+                        build job: '/Scan_Pipelines/Combi-Scan', parameters: [string(name: 'PACKAGE_NAME', value: env.PACKAGE_NAME), string(name: 'UBUNTU_VERSION', value: env.NEW_VERSION)]
                     }
                 }
             }
         }
         stage('Retrieve Source Files') {
             steps{
-                build job: '/Data_Extraction/GetSourceFiles' parameters: [string(name: 'PACKAGE_NAME', value: env.PACKAGE_NAME)])
+                build job: '/Data_Extraction/GetSourceFiles', parameters: [string(name: 'PACKAGE_NAME', value: env.PACKAGE_NAME)]
             }
         }     
     }
