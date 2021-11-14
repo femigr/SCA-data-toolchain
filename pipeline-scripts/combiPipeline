@@ -13,7 +13,7 @@ pipeline {
         CPPCHECK_REPORT_NAME = "${PACKAGE_NAME}_${UBUNTU_VERSION}.xml";
     }
     options {
-        timeout(time: 180, unit: 'MINUTES', activity: false);
+        timeout(time: 20, unit: 'MINUTES', activity: true);
         parallelsAlwaysFailFast();
     }
     stages {

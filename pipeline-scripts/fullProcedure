@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'PACKAGE_NAME', defaultValue: 'rolldice', description: 'Name of the package to be scanned');
+    }
+    environment {
+        OLD_VERSION = "12_04";
+        NEW_VERSION = "21_04";
+    }
+    options {
+        timeout(time: 180, unit: 'MINUTES', activity: false);
+        parallelsAlwaysFailFast();
+    }
+    stages {
+        stage('Scans') {
+            parallel{
+                stage('Old') {
+                    steps{
+                        build job: '/Scan_Pipelines/Combi-Scan' parameters: [string(name: 'PACKAGE_NAME', value: env.PACKAGE_NAME), string(name: 'UBUNTU_VERSION', value: env.OLD_VERSION)])
+                    }
+                }
+                stage('New') {
+                    steps{
+                        build job: '/Scan_Pipelines/Combi-Scan' parameters: [string(name: 'PACKAGE_NAME', value: env.PACKAGE_NAME), string(name: 'UBUNTU_VERSION', value: env.NEW_VERSION)])
+                    }
+                }
+            }
+        }
+        stage('Retrieve Source Files') {
+            steps{
+                build job: '/Data_Extraction/GetSourceFiles' parameters: [string(name: 'PACKAGE_NAME', value: env.PACKAGE_NAME)])
+            }
+        }     
+    }
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
