@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent {label 'coordination'}
     parameters {
         string(name: 'PACKAGE_NAME', defaultValue: 'rolldice', description: 'Name of the package to be scanned');
     }
