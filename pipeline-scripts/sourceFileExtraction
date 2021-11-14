@@ -35,7 +35,7 @@ def archiveSourceFiles(Map params = [
 }
 
 pipeline {
-    agent any
+    agent {label 'worker'}
     parameters {
         string(name: 'PACKAGE_NAME', defaultValue: 'rolldice', description: 'Name of the package to be scanned');
     }

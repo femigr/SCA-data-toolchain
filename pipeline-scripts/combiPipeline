@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent {label 'worker'}
     parameters {
         string(name: 'PACKAGE_NAME', defaultValue: 'rolldice', description: 'Name of the package to be scanned');
         choice(name: 'UBUNTU_VERSION', choices: ['12_04', '21_04'], description: '');
