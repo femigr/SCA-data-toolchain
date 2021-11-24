@@ -134,3 +134,10 @@ local.properties
 ######################
 
 sca_data_processing/__pycache__/
+
+plots/
+metrics*
+output/
+output*
+scanned_packages
+.vscode/

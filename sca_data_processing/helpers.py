@@ -9,7 +9,7 @@ def get_packages(path):
     """
     Get all packages (folders) in the given path. Also returns a bool that is true if the folder itself is the package.
     """
-    folders = [name for name in os.listdir(path) if os.path.isdir('%s/%s' % (path, name))]
+    folders = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
     if folders == []:
         filenames = ", ".join(os.listdir(path))
         for ext in file_extensions:
@@ -23,7 +23,7 @@ def get_files(path, package, path_is_package = False):
     """
     Get all files in the given package folder.
     """
-    return os.listdir('%s/%s' % (path, package))
+    return os.listdir(os.path.join(path, package))
 
 def get_package_files(path):
     """
@@ -47,7 +47,7 @@ def get_package_files(path):
                 'old': [filename for filename in files[name] if match_filename(name, old_postfix, filename)],
                 'new': [filename for filename in files[name] if match_filename(name, new_postfix, filename)],
             },
-            'path': '%s/%s/' % (path, name)
+            'path': os.path.join(path, name) + "/"
         }
         packages.append(package)
     return packages

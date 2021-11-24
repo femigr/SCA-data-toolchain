@@ -1,6 +1,7 @@
 import json
 import xml.etree.ElementTree as ET
 from sca_data_processing.issue import Issue
+from sca_data_processing.codefile import CodeFile
 
 
 def parse_sca_xml(xml_file, package):
@@ -14,10 +15,11 @@ def parse_sca_xml(xml_file, package):
     root = tree.getroot()
 
     issues = []
-    
+    rules = set()
     for child in root[1]:
         issues.append(Issue(xml_file, child.attrib['id'], child.attrib['severity'], child.attrib['cwe'] if 'cwe' in child.attrib else '', convert_xml_locations(child), package))
-    return issues
+        rules.add(child.attrib['id'])
+    return issues, rules
 
 def parse_sarif(sarif_file, package):
     """
@@ -46,16 +48,23 @@ def parse_sarif(sarif_file, package):
         }})
 
     issues = []
-    
+    occuring_rules = set()
     for result in data['results']:
-        issues.append(Issue(sarif_file, result['ruleId'], rules[result['ruleId']]['severity'], rules[result['ruleId']]['cwe'], convert_sarif_locations(result['locations']), package))
-
-    return issues
+        locations = convert_sarif_locations(result['locations'])
+        if locations == []:
+            continue
+        issues.append(Issue(sarif_file, result['ruleId'][4:], rules[result['ruleId']]['severity'], rules[result['ruleId']]['cwe'], locations, package))
+        occuring_rules.add(result['ruleId'][4:])
+    return issues, occuring_rules
 
 def convert_sarif_locations(sarif_locations):
     locations = []
 
     for location in sarif_locations:
+        if location['physicalLocation']['artifactLocation']['uri'].startswith('debian/'):
+            #issue was scanned in the build result folder
+            continue
+
         if 'region' in location['physicalLocation']:
             locations.append({
                 'file': location['physicalLocation']['artifactLocation']['uri'],
