@@ -2,7 +2,7 @@ pipeline {
     agent {label 'worker'}
     parameters {
         string(name: 'PACKAGE_NAME', defaultValue: 'rolldice', description: 'Name of the package to be scanned');
-        choice(name: 'UBUNTU_VERSION', choices: ['12_04', '21_04'], description: '');
+        choice(name: 'UBUNTU_VERSION', choices: ['12_04', '16_04'], description: '');
     }
     environment {
         SSH_CREDENTIALS_ID = 'ssh_credentials';
@@ -24,9 +24,9 @@ pipeline {
                         env.IMAGE_TAG = "precise-20151028"
                         echo 'Version set to 12_04'
                     }
-                    if(env.UBUNTU_VERSION == '21_04'){
+                    if(env.UBUNTU_VERSION == '16_04'){
                         env.IMAGE_TAG = "xenial-20210804"
-                        echo 'Version set to 21_04'
+                        echo 'Version set to 16_04'
                     }
                 }
                 sh 'cp Dockerfile Dockerfile_codeql'

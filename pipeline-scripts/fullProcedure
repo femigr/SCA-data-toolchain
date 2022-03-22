@@ -5,7 +5,7 @@ pipeline {
     }
     environment {
         OLD_VERSION = "12_04";
-        NEW_VERSION = "21_04";
+        NEW_VERSION = "16_04";
     }
     options {
         timeout(time: 180, unit: 'MINUTES', activity: false);

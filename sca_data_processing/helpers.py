@@ -1,7 +1,7 @@
 import os
 
 old_postfix = '_12_04'
-new_postfix = '_21_04'
+new_postfix = '_16_04'
 file_extensions = ['.xml', '.sarif']
 amount_of_scans = 2
 
